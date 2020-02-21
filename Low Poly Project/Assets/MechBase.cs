@@ -8,9 +8,11 @@ public class MechBase : MonoBehaviour
     Animator anim;
     [SerializeField]
     Transform cam;
+    public GroundTrigger groundTrigger;
     public Transform cube;
 
     public float moveSpeed = 1;
+    public float animationSpeed = 1;
     public float turnSpeed = 10;
     public float maxGroundAngle = 120;
     public bool debug;
@@ -47,12 +49,13 @@ public class MechBase : MonoBehaviour
         Move();
         Rotate();
 
-        anim.SetFloat("MoveSpeed", rb.velocity.magnitude);
+        anim.SetBool("IsMove", rb.velocity.magnitude > 0.1f);
+        anim.SetFloat("MoveSpeed", animationSpeed);
     }
 
     private void FixedUpdate()
     {
-        
+
     }
 
     void GetInput()
@@ -90,15 +93,16 @@ public class MechBase : MonoBehaviour
 
     void CheckGround()
     {
+        grounded = groundTrigger.GetIsTriggered();
         if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), -Vector3.up, out hitInfo, rayDistance))
         {
             DrawDebugLine(transform.position + new Vector3(0, 0.5f, 0), hitInfo.point, Color.red);
-            grounded = true;
+            //grounded = true;
         }
         else
         {
             DrawDebugLine(transform.position + new Vector3(0, 0.5f, 0), transform.position + new Vector3(0, 0.5f, 0) + -Vector3.up * rayDistance, Color.red);
-            grounded = false;
+            //grounded = false;
         }
     }
 
@@ -113,7 +117,7 @@ public class MechBase : MonoBehaviour
     {
         if (!grounded)
         {
-            gravitySpeed += currentGravAccel/10;
+            gravitySpeed += currentGravAccel / 10;
         }
         else
         {
@@ -123,11 +127,11 @@ public class MechBase : MonoBehaviour
 
     void Rotate()
     {
-        if(input.magnitude > 0)
+        if (input.magnitude > 0)
         {
             targetRotation = Quaternion.Euler(0, angle, 0);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-        }        
+        }
     }
 
     //Should rotate legs towards the wanted direction, leaving the torso facing whichever direction it is
@@ -138,7 +142,7 @@ public class MechBase : MonoBehaviour
         //inputCamDir.y = 0;
         //Vector3 charForwardInput = transform.TransformDirection(input).normalized * moveSpeed;
         //targetVelocity = charForwardInput;
-        if(input.magnitude > 0)
+        if (input.magnitude > 0)
         {
             targetVelocity = forward * moveSpeed;
         }
@@ -147,7 +151,7 @@ public class MechBase : MonoBehaviour
             targetVelocity = Vector3.zero;
         }
         targetVelocity.y -= gravitySpeed;
-        rb.velocity = targetVelocity * Time.deltaTime;
+        rb.velocity = targetVelocity * 10 * Time.deltaTime;
     }
 
     void DrawDebugLine(Vector3 _pointA, Vector3 _pointB)
